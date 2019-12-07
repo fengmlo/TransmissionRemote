@@ -103,19 +103,21 @@ public class TrackerUrlDialog extends DialogFragment {
     }
 
     private String formatUrl(@NonNull String url) {
-        url = url.trim().toLowerCase();
-
-        if (url.isEmpty()) return "";
-
-        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("udp://")) {
-            return url;
-        } else {
-            return "http://" + url;
-        }
+//        url = url.trim().toLowerCase();
+//
+//        if (url.isEmpty()) return "";
+//
+//        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("udp://")) {
+//            return url;
+//        } else {
+//            return "http://" + url;
+//        }
+        return url;
     }
 
     private boolean isValidUrl(String url) {
-        return !url.isEmpty() && !StringUtils.containsWhitespace(url);
+//        return !url.isEmpty() && !StringUtils.containsWhitespace(url);
+        return true;
     }
 
     public interface OnTrackerUrlEnteredListener {

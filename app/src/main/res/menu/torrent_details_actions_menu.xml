@@ -38,6 +38,16 @@
             android:showAsAction="never"
             app:showAsAction="never"
             tools:ignore="AppCompatResource" />
+        <item android:id="@+id/action_add_all_trackers"
+            android:title="@string/action_add_all_trackers"
+            android:showAsAction="never"
+            app:showAsAction="never"
+            tools:ignore="AppCompatResource" />
+        <item android:id="@+id/action_add_best_trackers"
+            android:title="@string/action_add_best_trackers"
+            android:showAsAction="never"
+            app:showAsAction="never"
+            tools:ignore="AppCompatResource" />
     </group>
 </menu>
 

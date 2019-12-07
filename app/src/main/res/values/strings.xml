@@ -16,6 +16,8 @@
     <string name="action_start_now">Start now (no queue)</string>
     <string name="action_verify">Verify local data</string>
     <string name="action_request_more_peers">Ask for more peers</string>
+    <string name="action_add_all_trackers">Add all trackers</string>
+    <string name="action_add_best_trackers">Add best trackers</string>
     <string name="action_set_location">Set location</string>
     <string name="action_rename">Rename</string>
 

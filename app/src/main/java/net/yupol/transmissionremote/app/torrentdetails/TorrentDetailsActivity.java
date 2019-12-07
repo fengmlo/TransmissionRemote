@@ -37,10 +37,19 @@ import net.yupol.transmissionremote.app.transport.request.TorrentGetRequest;
 import net.yupol.transmissionremote.app.transport.request.TorrentInfoGetRequest;
 import net.yupol.transmissionremote.app.transport.request.TorrentRemoveRequest;
 import net.yupol.transmissionremote.app.transport.request.TorrentSetRequest;
+import net.yupol.transmissionremote.app.transport.request.TrackerAddRequest;
 import net.yupol.transmissionremote.app.transport.request.VerifyTorrentRequest;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class TorrentDetailsActivity extends BaseSpiceActivity implements SaveChangesDialogFragment.SaveDiscardListener,
         RemoveTorrentsDialogFragment.OnRemoveTorrentSelectionListener, ChooseLocationDialogFragment.OnLocationSelectedListener,
@@ -68,6 +77,7 @@ public class TorrentDetailsActivity extends BaseSpiceActivity implements SaveCha
     private TorrentInfoUpdater torrentInfoUpdater;
     private TorrentDetailsLayoutBinding binding;
     private SharedPreferences sharedPreferences;
+    private OkHttpClient okHttpClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +126,7 @@ public class TorrentDetailsActivity extends BaseSpiceActivity implements SaveCha
         // Show content only if TorrentInfo contain files data.
         if (torrentInfo.getFiles() != null) {
             TorrentDetailsActivity.this.torrentInfo = torrentInfo;
+            invalidateOptionsMenu();
             pagerAdapter.setTorrentInfo(torrentInfo);
             notifyTorrentInfoListeners();
             if (setLocationMenuItem != null) {
@@ -249,6 +260,10 @@ public class TorrentDetailsActivity extends BaseSpiceActivity implements SaveCha
         getMenuInflater().inflate(R.menu.torrent_details_actions_menu, menu);
         setLocationMenuItem = menu.findItem(R.id.action_set_location);
         setLocationMenuItem.setEnabled(torrentInfo != null);
+        if (torrentInfo != null && torrentInfo.isPrivate()) {
+            menu.findItem(R.id.action_add_all_trackers).setVisible(false);
+            menu.findItem(R.id.action_add_best_trackers).setVisible(false);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -285,8 +300,68 @@ public class TorrentDetailsActivity extends BaseSpiceActivity implements SaveCha
             case R.id.action_reannounce:
                 getTransportManager().doRequest(new ReannounceTorrentRequest(torrent.getId()), null);
                 return true;
+            case R.id.action_add_all_trackers:
+                getTrackers("https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt");
+                return true;
+            case R.id.action_add_best_trackers:
+                getTrackers("https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt");
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void getTrackers(String url) {
+        Request request = new Request.Builder()
+                .get()
+                .url(url)
+                .build();
+        getOkHttpClient().newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        toast(e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        try {
+                            addTracker(response.body().string());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            toast(e.getMessage());
+                        }
+                    }
+                });
+    }
+
+    private OkHttpClient getOkHttpClient() {
+        if (okHttpClient == null) {
+            okHttpClient = new OkHttpClient.Builder()
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(20, TimeUnit.SECONDS)
+                    .retryOnConnectionFailure(true)
+                    .build();
+        }
+        return okHttpClient;
+    }
+
+    private void toast(CharSequence charSequence) {
+        Toast.makeText(TorrentDetailsActivity.this, charSequence, Toast.LENGTH_SHORT).show();
+    }
+
+    private void addTracker(String url) {
+        getTransportManager().doRequest(new TrackerAddRequest(torrent.getId(), url), new RequestListener<Void>() {
+            @Override
+            public void onRequestSuccess(Void aVoid) {
+                toast("添加成功");
+            }
+
+            @Override
+            public void onRequestFailure(SpiceException spiceException) {
+                toast(spiceException.getMessage());
+            }
+        });
     }
 
     @Override

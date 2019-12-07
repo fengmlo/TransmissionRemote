@@ -24,6 +24,7 @@ android {
             lintOptions {
                 disable 'MissingTranslation'
                 abortOnError false
+                checkReleaseBuilds false
             }
         }
     }
@@ -83,6 +84,8 @@ dependencies {
 
     // Emoji
     implementation 'com.vdurmont:emoji-java:4.0.0'
+
+    implementation 'com.squareup.okhttp3:okhttp:3.12.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest-library:1.3'

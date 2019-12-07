@@ -1,5 +1,6 @@
 package net.yupol.transmissionremote.app.transport.request;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -28,7 +29,15 @@ public class TrackerAddRequest extends Request<Void> {
         JSONObject args = new JSONObject();
         try {
             args.put("ids", new JSONArray().put(torrentId));
-            args.put("trackerAdd", new JSONArray().put(url));
+            JSONArray jsonArray = new JSONArray();
+            if (url.contains("\n")) {
+                String[] split = url.split("\n");
+                for (String s : split) {
+                    if (TextUtils.isEmpty(s)) continue;
+                    jsonArray.put(s.trim());
+                }
+            }
+            args.put("trackerAdd", jsonArray);
         } catch (JSONException e) {
             Log.e(TAG, "Error while creating json object", e);
             return null;
